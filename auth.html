@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Authentication — OPINIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-from:#c8eaf5;
+  --bg-to:#d8f0ec;
+  --white:#ffffff;
+  --card-bg:#f0f7fa;
+  --text-dark:#1a1f36;
+  --text-mid:#3d4a6b;
+  --text-light:#8896b0;
+  --blue:#1a80c4;
+  --blue-grad:linear-gradient(135deg,#1a80c4,#00b4d8);
+  --input-bg:#ffffff;
+  --input-border:#e2eaf2;
+  --input-focus:#1a80c4;
+  --error:#e53935;
+  --success:#2e7d32;
+  --radius:20px;
+  --radius-input:12px;
+}
+html,body{
+  width:100%;min-height:100%;
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(145deg,var(--bg-from) 0%,var(--bg-to) 100%);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE LAYOUT
+═══════════════════════════════════════════════ */
+.page-wrap{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:28px 16px 40px;
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN AUTH CARD
+═══════════════════════════════════════════════ */
+.auth-card{
+  width:100%;
+  max-width:420px;
+  background:var(--card-bg);
+  border-radius:var(--radius);
+  padding:32px 28px 24px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 24px 72px rgba(10,60,120,0.14),
+    0 4px 18px rgba(10,60,120,0.08);
+  animation:cardIn 0.75s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(40px) scale(0.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ── OPINIO heading ── */
+.auth-brand{
+  text-align:center;
+  margin-bottom:20px;
+}
+.brand-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,8vw,2.6rem);
+  font-weight:800;
+  letter-spacing:-1px;
+  background:linear-gradient(90deg,#0a5d8a 0%,#1a8fc4 25%,#00b4d8 50%,#1a8fc4 75%,#0a5d8a 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:brandShine 3s linear infinite;
+  line-height:1;
+  margin-bottom:6px;
+}
+@keyframes brandShine{
+  0%{background-position:0% center}
+  100%{background-position:220% center}
+}
+.brand-sub{
+  font-family:'DM Sans',sans-serif;
+  font-size:0.92rem;
+  font-weight:400;
+  color:var(--text-mid);
+  letter-spacing:0.1px;
+}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;
+  background:#e4edf5;
+  border-radius:50px;
+  padding:4px;
+  margin-bottom:24px;
+  gap:2px;
+}
+.tab-btn{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:10px 14px;
+  border-radius:50px;
+  border:none;
+  font-family:'DM Sans',sans-serif;
+  font-size:0.9rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:background 0.25s ease,color 0.25s ease,box-shadow 0.25s ease;
+  color:var(--text-light);
+  background:transparent;
+  white-space:nowrap;
+}
+.tab-btn.active{
+  background:var(--white);
+  color:var(--text-dark);
+  box-shadow:0 2px 10px rgba(10,60,120,0.10),0 1px 3px rgba(10,60,120,0.07);
+}
+.tab-icon{font-size:0.95rem}
+
+/* ── FORM PANELS ── */
+.form-panel{display:none}
+.form-panel.active{display:block;animation:panelIn 0.35s cubic-bezier(0.22,1,0.36,1) both}
+@keyframes panelIn{
+  from{opacity:0;transform:translateX(12px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* ── FIELD GROUP ── */
+.field-group{margin-bottom:16px}
+.field-label{
+  display:block;
+  font-family:'DM Sans',sans-serif;
+  font-size:0.88rem;
+  font-weight:700;
+  color:var(--text-dark);
+  margin-bottom:7px;
+}
+.input-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.field-input{
+  width:100%;
+  background:var(--input-bg);
+  border:1.5px solid var(--input-border);
+  border-radius:var(--radius-input);
+  padding:13px 44px 13px 14px;
+  font-family:'DM Sans',sans-serif;
+  font-size:0.92rem;
+  color:var(--text-dark);
+  outline:none;
+  transition:border-color 0.22s ease,box-shadow 0.22s ease;
+}
+.field-input::placeholder{color:#b0bec5;font-weight:400}
+.field-input:focus{
+  border-color:var(--input-focus);
+  box-shadow:0 0 0 3px rgba(26,128,196,0.12);
+}
+.field-input.error-field{
+  border-color:var(--error);
+  box-shadow:0 0 0 3px rgba(229,57,53,0.10);
+}
+
+/* eye toggle */
+.eye-btn{
+  position:absolute;
+  right:13px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:#b0bec5;
+  font-size:1rem;
+  padding:4px;
+  display:flex;
+  align-items:center;
+  transition:color 0.2s;
+  line-height:1;
+}
+.eye-btn:hover{color:#6b7a99}
+
+/* error text */
+.field-error{
+  font-size:0.76rem;
+  color:var(--error);
+  margin-top:5px;
+  display:none;
+  font-weight:500;
+}
+.field-error.show{display:block}
+
+/* ── SUBMIT BUTTON ── */
+.submit-btn{
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg,#1a6fa8 0%,#1a90c8 50%,#00b4d8 100%);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  font-family:'Syne',sans-serif;
+  font-size:1rem;
+  font-weight:700;
+  cursor:pointer;
+  letter-spacing:0.2px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.2) inset,
+    0 6px 22px rgba(26,111,168,0.36),
+    0 2px 7px rgba(26,111,168,0.22);
+  transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.28s ease;
+  margin-top:4px;
+}
+.submit-btn::before{
+  content:'';
+  position:absolute;
+  top:0;left:-120%;width:70%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
+  transform:skewX(-20deg);
+  transition:left 0.5s ease;
+}
+.submit-btn:hover::before{left:140%}
+.submit-btn:hover{
+  transform:translateY(-2px) scale(1.015);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.2) inset,
+    0 12px 32px rgba(26,111,168,0.44),
+    0 3px 10px rgba(26,111,168,0.26);
+}
+.submit-btn:active{transform:scale(0.98)}
+.submit-btn:disabled{
+  opacity:0.65;cursor:not-allowed;transform:none;
+}
+
+/* ── BACK BUTTON ── */
+.back-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:auto;
+  margin:14px auto 0;
+  padding:11px 32px;
+  background:#1a1f36;
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  font-family:'Syne',sans-serif;
+  font-size:0.9rem;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 14px rgba(10,20,60,0.22),0 1px 4px rgba(10,20,60,0.14);
+  transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.28s ease;
+  letter-spacing:0.1px;
+}
+.back-btn:hover{
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:0 8px 22px rgba(10,20,60,0.3);
+}
+.back-btn:active{transform:scale(0.97)}
+
+/* ── DIVIDER + FOOTER ── */
+.auth-divider{
+  width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(30,60,120,0.12),transparent);
+  margin:20px 0 14px;
+}
+.auth-footer{
+  text-align:center;
+  font-size:0.74rem;
+  color:#a0b0c5;
+  line-height:1.6;
+}
+.auth-footer strong{color:#7a90a8;font-weight:600}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(90px);
+  padding:13px 26px;border-radius:50px;
+  font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;
+  z-index:99999;opacity:0;
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap;max-width:92vw;text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,0.24);pointer-events:none;
+  background:#1a2a4a;color:#fff;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:linear-gradient(135deg,#0d7a46,#0fa356)}
+#toast.error{background:linear-gradient(135deg,#b01a1a,#d42020)}
+#toast.info{background:linear-gradient(135deg,#1a5fa8,#1a80c4)}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media(max-width:380px){
+  .auth-card{padding:24px 18px 20px}
+  .brand-title{font-size:1.8rem}
+  .tab-btn{font-size:0.82rem;padding:9px 10px}
+}
+@media(min-width:600px){
+  .auth-card{padding:40px 40px 30px}
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="auth-card">
+
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="brand-title">OPINIO</div>
+      <div class="brand-sub">Feedback Management System</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabSignIn" onclick="switchTab('signin')">
+        <span class="tab-icon">→</span> Sign In
+      </button>
+      <button class="tab-btn" id="tabSignUp" onclick="switchTab('signup')">
+        <span class="tab-icon">👤</span> Sign Up
+      </button>
+    </div>
+
+    <!-- ── SIGN IN PANEL ── -->
+    <div class="form-panel active" id="panelSignIn">
+
+      <!-- Login ID -->
+      <div class="field-group">
+        <label class="field-label" for="si_loginId">Login ID</label>
+        <div class="input-wrap">
+          <input class="field-input" id="si_loginId" type="text"
+                 placeholder="Enter your login ID" autocomplete="username"/>
+        </div>
+        <div class="field-error" id="si_loginId_err">Please enter your Login ID</div>
+      </div>
+
+      <!-- Account Password -->
+      <div class="field-group">
+        <label class="field-label" for="si_password">Account Password</label>
+        <div class="input-wrap">
+          <input class="field-input" id="si_password" type="password"
+                 placeholder="Enter your password" autocomplete="current-password"/>
+          <button class="eye-btn" onclick="toggleEye('si_password','eye1')" tabindex="-1">
+            <span id="eye1">👁️</span>
+          </button>
+        </div>
+        <div class="field-error" id="si_password_err">Please enter your password</div>
+      </div>
+
+      <!-- Sign In Button -->
+      <button class="submit-btn" id="signInBtn" onclick="doSignIn()">Sign In</button>
+
+      <!-- Back Button -->
+      <button class="back-btn" onclick="goBack()">← Back</button>
+
+    </div>
+
+    <!-- ── SIGN UP PANEL ── -->
+    <div class="form-panel" id="panelSignUp">
+
+      <!-- Login ID -->
+      <div class="field-group">
+        <label class="field-label" for="su_loginId">Login ID</label>
+        <div class="input-wrap">
+          <input class="field-input" id="su_loginId" type="text"
+                 placeholder="Create login ID (min 6 chars)" autocomplete="username"/>
+        </div>
+        <div class="field-error" id="su_loginId_err">Login ID must be at least 6 characters</div>
+      </div>
+
+      <!-- Account Password -->
+      <div class="field-group">
+        <label class="field-label" for="su_password">Account Password</label>
+        <div class="input-wrap">
+          <input class="field-input" id="su_password" type="password"
+                 placeholder="Create password (min 5 chars)" autocomplete="new-password"/>
+          <button class="eye-btn" onclick="toggleEye('su_password','eye2')" tabindex="-1">
+            <span id="eye2">👁️</span>
+          </button>
+        </div>
+        <div class="field-error" id="su_password_err">Password must be at least 5 characters</div>
+      </div>
+
+      <!-- Admin Password -->
+      <div class="field-group">
+        <label class="field-label" for="su_adminPwd">Admin Password</label>
+        <div class="input-wrap">
+          <input class="field-input" id="su_adminPwd" type="password"
+                 placeholder="Create admin password (min 4 chars)" autocomplete="new-password"/>
+          <button class="eye-btn" onclick="toggleEye('su_adminPwd','eye3')" tabindex="-1">
+            <span id="eye3">👁️</span>
+          </button>
+        </div>
+        <div class="field-error" id="su_adminPwd_err">Admin password must be at least 4 characters</div>
+      </div>
+
+      <!-- Sign Up Button -->
+      <button class="submit-btn" id="signUpBtn" onclick="doSignUp()">Sign Up</button>
+
+      <!-- Back Button -->
+      <button class="back-btn" onclick="goBack()">← Back</button>
+
+    </div>
+
+    <!-- Divider + Footer -->
+    <div class="auth-divider"></div>
+    <div class="auth-footer" style="color: #000;">
+      <strong>Developed by Syed Numan Pasha</strong>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ── Firebase config ── */
+const firebaseConfig = {
+  apiKey:"AIzaSyA_mhiq57BO4DH7TIDtlzw3-kUfzRLm0k0",
+  authDomain:"opinio-e813a.firebaseapp.com",
+  projectId:"opinio-e813a",
+  storageBucket:"opinio-e813a.firebasestorage.app",
+  messagingSenderId:"553281150769",
+  appId:"1:553281150769:web:f7f154a9a4d23588c25a10"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+/* ── session values ── */
+const dept    = sessionStorage.getItem('opinio_dept')     || '';
+const sem     = sessionStorage.getItem('opinio_sem')      || '';
+const deptName= sessionStorage.getItem('opinio_deptName') || '';
+
+/* ════════════════════════════════════════════
+   TAB SWITCH
+════════════════════════════════════════════ */
+window.switchTab = function(tab){
+  clearAllErrors();
+  document.getElementById('tabSignIn').classList.toggle('active', tab==='signin');
+  document.getElementById('tabSignUp').classList.toggle('active', tab==='signup');
+  document.getElementById('panelSignIn').classList.toggle('active', tab==='signin');
+  document.getElementById('panelSignUp').classList.toggle('active', tab==='signup');
+};
+
+/* ════════════════════════════════════════════
+   EYE TOGGLE
+════════════════════════════════════════════ */
+window.toggleEye = function(inputId, eyeId){
+  const inp = document.getElementById(inputId);
+  const eye = document.getElementById(eyeId);
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    eye.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    eye.textContent = '👁️';
+  }
+};
+
+/* ════════════════════════════════════════════
+   SIGN IN
+════════════════════════════════════════════ */
+window.doSignIn = async function(){
+  clearAllErrors();
+  const loginId = document.getElementById('si_loginId').value.trim();
+  const password= document.getElementById('si_password').value;
+  let valid = true;
+
+  if(!loginId){
+    showErr('si_loginId_err','Please enter your Login ID');
+    showFieldError('si_loginId'); valid=false;
+  }
+  if(!password){
+    showErr('si_password_err','Please enter your password');
+    showFieldError('si_password'); valid=false;
+  }
+  if(!valid) return;
+
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+
+  try {
+    // Firestore path: departments/{dept}/semesters/{sem}/accounts/{loginId}
+    const accRef  = doc(db,`departments/${dept}/semesters/${sem}/accounts/${loginId}`);
+    const accSnap = await getDoc(accRef);
+
+    if(!accSnap.exists()){
+      showErr('si_loginId_err','Login ID not found. Please sign up first.');
+      showFieldError('si_loginId');
+      showToast('❌ Login ID not found', 'error'); 
+    } else {
+      const data = accSnap.data();
+      if(data.accountPassword !== password){
+        showErr('si_password_err','Incorrect password. Please try again.');
+        showFieldError('si_password');
+        showToast('❌ Incorrect password', 'error');
+      } else {
+        // success — save session
+        sessionStorage.setItem('opinio_loginId',   loginId);
+        sessionStorage.setItem('opinio_adminPwd',  data.adminPassword);
+        showToast('✅ Signed in successfully!', 'success');
+        setTimeout(() => window.location.href = 'role.html', 1200);
+      }
+    }
+  } catch(e){
+    showToast('❌ Error: ' + e.message, 'error');
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = 'Sign In';
+};
+
+/* ════════════════════════════════════════════
+   SIGN UP
+════════════════════════════════════════════ */
+window.doSignUp = async function(){
+  clearAllErrors();
+  const loginId  = document.getElementById('su_loginId').value.trim();
+  const password = document.getElementById('su_password').value;
+  const adminPwd = document.getElementById('su_adminPwd').value;
+  let valid = true;
+
+  if(loginId.length < 6){
+    showErr('su_loginId_err','Login ID must be at least 6 characters');
+    showFieldError('su_loginId'); valid=false;
+  }
+  if(password.length < 5){
+    showErr('su_password_err','Account password must be at least 5 characters');
+    showFieldError('su_password'); valid=false;
+  }
+  if(adminPwd.length < 4){
+    showErr('su_adminPwd_err','Admin password must be at least 4 characters');
+    showFieldError('su_adminPwd'); valid=false;
+  }
+  if(!valid) return;
+
+  const btn = document.getElementById('signUpBtn');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+
+  try {
+    const accRef  = doc(db,`departments/${dept}/semesters/${sem}/accounts/${loginId}`);
+    const accSnap = await getDoc(accRef);
+
+    if(accSnap.exists()){
+      showErr('su_loginId_err','This Login ID already exists. Please choose another.');
+      showFieldError('su_loginId');
+      showToast('❌ Login ID already taken', 'error');
+    } else {
+      // create account
+      await setDoc(accRef, {
+        loginId,
+        accountPassword: password,
+        adminPassword:   adminPwd,
+        dept, sem, deptName,
+        createdAt: new Date().toISOString()
+      });
+      // save session
+      sessionStorage.setItem('opinio_loginId',  loginId);
+      sessionStorage.setItem('opinio_adminPwd', adminPwd);
+      showToast('✅ Account created successfully!', 'success');
+      setTimeout(() => window.location.href = 'role.html', 1200);
+    }
+  } catch(e){
+    showToast('❌ Error: ' + e.message, 'error');
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = 'Sign Up';
+};
+
+/* ════════════════════════════════════════════
+   BACK
+════════════════════════════════════════════ */
+window.goBack = function(){
+  window.location.href = 'semesters.html';
+};
+
+/* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  if(el){ el.textContent = msg; el.classList.add('show'); }
+}
+function showFieldError(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.add('error-field');
+}
+function clearAllErrors(){
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.field-input').forEach(e => e.classList.remove('error-field'));
+}
+
+/* ── clear error on input ── */
+document.querySelectorAll('.field-input').forEach(inp => {
+  inp.addEventListener('input', () => {
+    inp.classList.remove('error-field');
+    const errEl = document.getElementById(inp.id + '_err');
+    if(errEl) errEl.classList.remove('show');
+  });
+});
+
+/* ── Enter key support ── */
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  const siActive = document.getElementById('panelSignIn').classList.contains('active');
+  if(siActive) window.doSignIn();
+  else window.doSignUp();
+});
+
+/* ════════════════════════════════════════════
+   TOAST — 3.5 seconds
+════════════════════════════════════════════ */
+window.showToast = function(msg, type='', duration=3500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'show' + (type ? ' '+type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => { t.className = ''; }, 400);
+  }, duration);
+};
+</script>
+</body>
+</html>
