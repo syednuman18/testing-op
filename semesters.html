@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Select Semester — OPINIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#e8f2fb;
+  --white:#ffffff;
+  --text-dark:#1a1f36;
+  --text-mid:#3d4a6b;
+  --text-light:#8896b0;
+  --shadow-card:0 2px 12px rgba(30,60,120,0.08),0 1px 4px rgba(30,60,120,0.05);
+  --shadow-hover:0 18px 52px rgba(30,60,120,0.18),0 4px 16px rgba(30,60,120,0.10);
+  --radius:20px;
+}
+html,body{
+  width:100%;min-height:100%;
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  overflow-x:hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE WRAP
+═══════════════════════════════════════════════ */
+.page-wrap{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:0 0 64px;
+}
+
+/* ── back bar ── */
+.back-bar{
+  width:100%;
+  max-width:700px;
+  padding:18px 20px 0;
+  display:flex;
+  align-items:center;
+}
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-family:'Syne',sans-serif;
+  font-size:0.9rem;
+  font-weight:600;
+  color:#1a6fa8;
+  text-decoration:none;
+  cursor:pointer;
+  border:none;
+  background:none;
+  padding:7px 12px;
+  border-radius:10px;
+  transition:color 0.2s,background 0.2s,transform 0.2s;
+}
+.back-link:hover{
+  background:rgba(26,111,168,0.08);
+  transform:translateX(-2px);
+}
+.back-arrow{
+  font-size:1.1rem;
+  transition:transform 0.22s ease;
+}
+.back-link:hover .back-arrow{transform:translateX(-4px)}
+
+/* ── page header ── */
+.page-header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:22px 20px 20px;
+  width:100%;
+  max-width:600px;
+  gap:14px;
+}
+.page-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.75rem,6.5vw,2.4rem);
+  font-weight:800;
+  color:var(--text-dark);
+  letter-spacing:-1px;
+  line-height:1.1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.title-emoji{
+  font-size:clamp(1.5rem,5.5vw,2rem);
+  animation:iconBob 3s ease-in-out infinite;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+  display:inline-block;
+}
+@keyframes iconBob{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  50%{transform:translateY(-5px) rotate(-3deg)}
+}
+
+/* dept pill badge */
+.dept-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--white);
+  border-radius:50px;
+  padding:10px 20px;
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.82rem,3vw,0.95rem);
+  font-weight:700;
+  color:#1a6fa8;
+  box-shadow:0 2px 10px rgba(30,60,120,0.10),0 1px 3px rgba(30,60,120,0.06);
+  border:1.5px solid rgba(26,111,168,0.12);
+  animation:pillReveal 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  animation-delay:0.15s;
+  text-align:center;
+  line-height:1.3;
+}
+.dept-pill-icon{font-size:1rem}
+@keyframes pillReveal{
+  from{opacity:0;transform:translateY(16px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ═══════════════════════════════════════════════
+   SEMESTER GRID
+═══════════════════════════════════════════════ */
+.sem-grid{
+  width:100%;
+  max-width:700px;
+  padding:8px 16px 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+/* ── semester card ── */
+.sem-card{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:22px 16px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  cursor:pointer;
+  border:1.5px solid transparent;
+  box-shadow:var(--shadow-card);
+  position:relative;
+  overflow:hidden;
+  /* start hidden for reveal */
+  opacity:0;
+  transform:translateY(32px) scale(0.97);
+  transition:
+    opacity 0.55s cubic-bezier(0.22,1,0.36,1),
+    transform 0.55s cubic-bezier(0.22,1,0.36,1),
+    box-shadow 0.3s ease,
+    border-color 0.25s ease;
+  transform-style:preserve-3d;
+  will-change:transform;
+}
+
+/* top gloss */
+.sem-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);
+  pointer-events:none;
+}
+/* shimmer sweep */
+.sem-card::after{
+  content:'';
+  position:absolute;
+  top:0;left:-120%;
+  width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.32),transparent);
+  transform:skewX(-18deg);
+  transition:left 0.5s ease;
+  pointer-events:none;
+}
+.sem-card:hover::after,.sem-card:active::after{left:140%}
+
+/* revealed state */
+.sem-card.visible{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+.sem-card.visible:hover{
+  transform:translateY(-6px) scale(1.03) !important;
+  box-shadow:var(--shadow-hover);
+  border-color:rgba(30,60,120,0.08);
+}
+.sem-card.visible:active{
+  transform:translateY(-2px) scale(1.01) !important;
+}
+
+/* ── semester icon square ── */
+.sem-icon{
+  width:64px;
+  height:64px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  box-shadow:0 6px 18px rgba(0,0,0,0.2);
+  transition:transform 0.32s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease;
+  flex-shrink:0;
+}
+.sem-card:hover .sem-icon{
+  transform:scale(1.1) rotate(-5deg);
+  box-shadow:0 10px 28px rgba(0,0,0,0.28);
+}
+
+/* 8 distinct colours matching screenshot */
+.ic1{background:linear-gradient(135deg,#2979ff,#1565c0)}   /* sem1 — blue */
+.ic2{background:linear-gradient(135deg,#9c27b0,#6a1b9a)}   /* sem2 — purple */
+.ic3{background:linear-gradient(135deg,#00bcd4,#00838f)}   /* sem3 — teal */
+.ic4{background:linear-gradient(135deg,#43a047,#1b5e20)}   /* sem4 — green */
+.ic5{background:linear-gradient(135deg,#ff9800,#e65100)}   /* sem5 — orange */
+.ic6{background:linear-gradient(135deg,#f44336,#b71c1c)}   /* sem6 — red */
+.ic7{background:linear-gradient(135deg,#009688,#004d40)}   /* sem7 — dark teal */
+.ic8{background:linear-gradient(135deg,#7c4dff,#4527a0)}   /* sem8 — deep purple */
+
+/* ── text ── */
+.sem-name{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.95rem,3.5vw,1.05rem);
+  font-weight:700;
+  color:var(--text-dark);
+  text-align:center;
+  line-height:1.2;
+}
+.sem-year{
+  font-family:'DM Sans',sans-serif;
+  font-size:0.78rem;
+  font-weight:400;
+  color:var(--text-light);
+  text-align:center;
+  margin-top:-8px;
+}
+
+/* ═══════════════════════════════════════════════
+   DESKTOP — 4 columns on wider screens
+═══════════════════════════════════════════════ */
+@media(min-width:640px){
+  .sem-grid{
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    max-width:760px;
+  }
+  .sem-card{padding:20px 12px 16px;gap:12px}
+  .sem-icon{width:54px;height:54px;font-size:1.35rem;border-radius:14px}
+  .sem-name{font-size:0.88rem}
+}
+@media(min-width:900px){
+  .sem-grid{max-width:900px;gap:20px}
+  .sem-card{padding:26px 16px 20px}
+  .sem-icon{width:62px;height:62px;font-size:1.5rem;border-radius:16px}
+  .sem-name{font-size:0.95rem}
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:26px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:#1a2a4a;color:#fff;
+  padding:11px 22px;border-radius:50px;
+  font-family:'DM Sans',sans-serif;font-size:0.86rem;font-weight:500;
+  z-index:9999;opacity:0;
+  transition:all 0.38s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap;max-width:90vw;text-align:center;
+  box-shadow:0 8px 28px rgba(0,0,0,0.22);pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- Back to Departments -->
+  <div class="back-bar">
+    <button class="back-link" onclick="goBack()">
+      <span class="back-arrow">←</span> Back to Departments
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      Select Semester
+      <span class="title-emoji">🎓</span>
+    </h1>
+    <!-- Department pill — filled from sessionStorage -->
+    <div class="dept-pill">
+      <span class="dept-pill-icon">🏛️</span>
+      <span id="deptPillText">Department: Computer Science and Engineering</span>
+    </div>
+  </div>
+
+  <!-- Semester Grid -->
+  <div class="sem-grid" id="semGrid">
+
+    <!-- Sem 1 -->
+    <div class="sem-card" data-sem="1" data-semname="1st Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic1">📖</div>
+      <div class="sem-name">1st Semester</div>
+      <div class="sem-year">Foundation Year</div>
+    </div>
+
+    <!-- Sem 2 -->
+    <div class="sem-card" data-sem="2" data-semname="2nd Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic2">📖</div>
+      <div class="sem-name">2nd Semester</div>
+      <div class="sem-year">Foundation Year</div>
+    </div>
+
+    <!-- Sem 3 -->
+    <div class="sem-card" data-sem="3" data-semname="3rd Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic3">📖</div>
+      <div class="sem-name">3rd Semester</div>
+      <div class="sem-year">Second Year</div>
+    </div>
+
+    <!-- Sem 4 -->
+    <div class="sem-card" data-sem="4" data-semname="4th Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic4">📖</div>
+      <div class="sem-name">4th Semester</div>
+      <div class="sem-year">Second Year</div>
+    </div>
+
+    <!-- Sem 5 -->
+    <div class="sem-card" data-sem="5" data-semname="5th Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic5">📖</div>
+      <div class="sem-name">5th Semester</div>
+      <div class="sem-year">Third Year</div>
+    </div>
+
+    <!-- Sem 6 -->
+    <div class="sem-card" data-sem="6" data-semname="6th Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic6">📖</div>
+      <div class="sem-name">6th Semester</div>
+      <div class="sem-year">Third Year</div>
+    </div>
+
+    <!-- Sem 7 -->
+    <div class="sem-card" data-sem="7" data-semname="7th Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic7">📖</div>
+      <div class="sem-name">7th Semester</div>
+      <div class="sem-year">Final Year</div>
+    </div>
+
+    <!-- Sem 8 -->
+    <div class="sem-card" data-sem="8" data-semname="8th Semester" onclick="selectSem(this)">
+      <div class="sem-icon ic8">📖</div>
+      <div class="sem-name">8th Semester</div>
+      <div class="sem-year">Final Year</div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   FILL DEPT PILL FROM SESSION
+════════════════════════════════════════════ */
+(function fillDeptPill(){
+  const deptName = sessionStorage.getItem('opinio_deptName');
+  if(deptName){
+    document.getElementById('deptPillText').textContent = 'Department: ' + deptName;
+  }
+})();
+
+/* ════════════════════════════════════════════
+   REVEAL ON SCROLL — staggered entrance
+════════════════════════════════════════════ */
+function initReveal(){
+  const cards = document.querySelectorAll('.sem-card');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, {threshold:0.06});
+
+  cards.forEach((card, i) => {
+    const delay = i * 0.07;
+    card.style.transitionDelay = delay + 's';
+    const rect = card.getBoundingClientRect();
+    if(rect.top < window.innerHeight * 0.96){
+      setTimeout(() => card.classList.add('visible'), i * 70);
+    } else {
+      obs.observe(card);
+    }
+  });
+}
+
+/* ════════════════════════════════════════════
+   3D TILT — desktop hover
+════════════════════════════════════════════ */
+function init3DTilt(){
+  document.querySelectorAll('.sem-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r  = card.getBoundingClientRect();
+      const cx = r.width/2, cy = r.height/2;
+      const dx = e.clientX - r.left - cx;
+      const dy = e.clientY - r.top  - cy;
+      const rx = (dy/cy) * -7;
+      const ry = (dx/cx) *  7;
+      if(card.classList.contains('visible')){
+        card.style.transform =
+          `translateY(-6px) scale(1.03) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      }
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+    card.addEventListener('touchstart', () => {
+      card.style.transform = 'translateY(-4px) scale(1.025)';
+    },{passive:true});
+    card.addEventListener('touchend', () => {
+      card.style.transform = '';
+    },{passive:true});
+  });
+}
+
+/* ════════════════════════════════════════════
+   SELECT SEMESTER → go to auth page
+════════════════════════════════════════════ */
+function selectSem(card){
+  const sem     = card.getAttribute('data-sem');
+  const semName = card.getAttribute('data-semname');
+
+  // visual highlight
+  document.querySelectorAll('.sem-card').forEach(c => c.style.borderColor = '');
+  card.style.borderColor = '#2979ff';
+
+  // save to session
+  sessionStorage.setItem('opinio_sem', sem);
+  sessionStorage.setItem('opinio_semName', semName);
+
+  showToast('Selected ' + semName);
+  setTimeout(() => {
+    window.location.href = 'auth.html';
+  }, 320);
+}
+
+/* ════════════════════════════════════════════
+   BACK TO DEPARTMENTS
+════════════════════════════════════════════ */
+function goBack(){
+  window.location.href = 'departments.html';
+}
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+function showToast(msg, duration=3500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  initReveal();
+  init3DTilt();
+});
+</script>
+</body>
+</html>
